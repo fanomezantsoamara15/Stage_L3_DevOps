@@ -1,39 +1,111 @@
-# # Fichiers de configuration sensibles
-# .env
-# *.env
-# config.env
+# =========================================
+# SYSTEM / OS FILES
+# =========================================
+.DS_Store
+Thumbs.db
 
-# # Dossiers de dépendances
-# venv/
-# __pycache__/
-# *.py[cod]
-# *$py.class
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# # Fichiers de base de données
-# *.db
-# *.sqlite3
+# =========================================
+# ENVIRONMENT FILES
+# =========================================
+.env
+.env.*
+!.env.example
 
-# # Dossiers d'upload
-# backend/uploads/*
-# !backend/uploads/.gitkeep
+# =========================================
+# FRONTEND (React + Vite)
+# =========================================
+quiz-connect-forge/node_modules/
+quiz-connect-forge/dist/
+quiz-connect-forge/build/
+quiz-connect-forge/.vite/
 
-# # Fichiers de logs
-# *.log
+# Local Vite/React envs
+quiz-connect-forge/.env.local
+quiz-connect-forge/.env.development.local
+quiz-connect-forge/.env.test.local
+quiz-connect-forge/.env.production.local
 
-# # Environnements virtuels
-# ENV/
+# Logs
+quiz-connect-forge/npm-debug.log*
+quiz-connect-forge/yarn-debug.log*
+quiz-connect-forge/yarn-error.log*
 
-# # Fichiers de l'IDE
-# .idea/
-# .vscode/
-# *.swp
-# *.swo
+# =========================================
+# BACKEND (Python + Flask)
+# =========================================
+backend/venv/
+backend/env/
+backend/.venv/
 
-# # Fichiers de build et de déploiement
-# build/
-# dist/
-# *.egg-info/
+backend/__pycache__/
+backend/*.py[cod]
+backend/instance/
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
 
-# # Fichiers système
-# .DS_Store
-# Thumbs.db
+# Build and packaging
+backend/build/
+backend/dist/
+backend/*.egg-info/
+backend/.eggs/
+backend/develop-eggs/
+backend/pip-wheel-metadata/
+backend/wheels/
+
+# Caches & coverage
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.tox/
+backend/coverage/
+backend/.coverage
+backend/coverage.xml
+backend/nosetests.xml
+
+# =========================================
+# DATABASES & DUMPS
+# =========================================
+*.sql
+*.sql.gz
+*.dump
+*.db
+*.tar
+
+# =========================================
+# DOCKER
+# =========================================
+.docker/
+docker/
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.dev.yml
+docker-compose*.log
+
+*.pid
+*.pid.lock
+*.seed
+*.log
+
+# =========================================
+# LOGS & TEMP FILES
+# =========================================
+*.log
+*.tmp
+*.bak
+*.old
+tmp/
+temp/
+cache/
+uploads/
+media/
+
+# =========================================
+# GIT MERGE / BACKUP FILES
+# =========================================
+*.orig
