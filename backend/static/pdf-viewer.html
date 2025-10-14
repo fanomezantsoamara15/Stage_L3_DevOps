@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualiseur PDF Sécurisé</title>
+
+    <!-- PDF.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+
+    <!-- Styles personnalisés -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: calc(100vh - 80px);
+        }
+
+        .viewer-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .filename {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .security-badge {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn.download {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn.download:hover {
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn.close {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn.close:hover {
+            box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+        }
+
+        .pdf-container {
+            flex: 1;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 0 0 16px 16px;
+        }
+
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(248, 249, 250, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e9ecef;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #6c757d;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-subtext {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+
+        .error-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(248, 249, 250, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            color: #495057;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message {
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 4rem;
+            color: rgba(231, 76, 60, 0.08);
+            pointer-events: none;
+            z-index: 1;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                height: calc(100vh - 60px);
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .toolbar-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">SÉCURISÉ</div>
+
+    <div class="status-indicator" id="statusIndicator">
+        🔒 Protection active
+    </div>
+
+    <div class="header">
+        <h1>🔒 Visualiseur PDF Ultra-Sécurisé</h1>
+        <p>Protection maximale contre les téléchargeurs automatiques</p>
+    </div>
+
+    <div class="container">
+        <div class="viewer-wrapper">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <span class="filename">
+                        📄 <span id="filename">Chargement...</span>
+                    </span>
+                    <span class="security-badge">🛡️ PROTÉGÉ</span>
+                </div>
+                <div class="toolbar-right">
+                    <a id="downloadBtn" href="#" class="btn download" style="display: none;">
+                        ⬇️ Télécharger
+                    </a>
+                    <button onclick="window.close()" class="btn close">
+                        ❌ Fermer
+                    </button>
+                </div>
+            </div>
+
+            <div class="pdf-container">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">🔄 Chargement du document PDF...</div>
+                    <div class="loading-subtext">Vérification de la sécurité en cours</div>
+                </div>
+
+                <div class="error-overlay" id="errorOverlay" style="display: none;">
+                    <div class="error-icon">❌</div>
+                    <div class="error-title">Erreur de chargement</div>
+                    <div class="error-message">
+                        Le document n'a pas pu être chargé dans le visualiseur sécurisé.
+                        Cela peut être dû à des restrictions de sécurité ou à un format non supporté.
+                    </div>
+                    <a id="fallbackDownload" href="#" class="btn download">
+                        ⬇️ Télécharger le fichier
+                    </a>
+                </div>
+
+                <iframe
+                    id="pdfViewer"
+                    style="display: none;"
+                    allowfullscreen
+                    webkitallowfullscreen
+                    mozallowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration PDF.js depuis CDN
+        const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+
+        // Récupérer les paramètres de l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const filename = urlParams.get('file') || 'document.pdf';
+        const pdfUrl = urlParams.get('url') || `/api/documents/${filename}/serve`;
+
+        document.getElementById('filename').textContent = filename;
+
+        // Configuration sécurisée
+        const pdfjsConfig = {
+            workerSrc: `${PDFJS_URL}pdf.worker.min.js`,
+            cMapUrl: `${PDFJS_URL}pdfjs-cmaps/`,
+            cMapPacked: true,
+            disableAutoFetch: false,
+            disableStream: false,
+            disableRange: false,
+            httpHeaders: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Security-Token': generateSecurityToken()
+            }
+        };
+
+        // Générer un token de sécurité côté client
+        function generateSecurityToken() {
+            const timestamp = Date.now();
+            const userAgent = navigator.userAgent.substring(0, 50);
+            return btoa(`${timestamp}:${userAgent}`).substring(0, 16);
+        }
+
+        // Protection côté client
+        let securityViolations = 0;
+        const maxViolations = 3;
+
+        // Désactiver les raccourcis clavier dangereux
+        document.addEventListener('keydown', function(e) {
+            const dangerousKeys = [
+                'F12', 'F5', // Outils de développement et rechargement
+                's', 'u', 'p' // Ctrl+S, Ctrl+U, Ctrl+P
+            ];
+
+            if (e.ctrlKey || e.metaKey) {
+                const key = e.key.toLowerCase();
+                if (dangerousKeys.includes(key) || dangerousKeys.includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showSecurityAlert();
+                    return false;
+                }
+            }
+
+            // Bloquer Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) {
+                e.preventDefault();
+                showSecurityAlert();
+                return false;
+            }
+        });
+
+        // Désactiver le menu contextuel
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showSecurityAlert();
+            return false;
+        });
+
+        // Détection des outils de développement
+        let devtools = { open: false };
+        const devtoolsCheck = setInterval(function() {
+            const before = new Date();
+            debugger;
+            const after = new Date();
+
+            if (after - before > 100) {
+                if (!devtools.open) {
+                    devtools.open = true;
+                    showSecurityAlert();
+                }
+            }
+        }, 1000);
+
+        function showSecurityAlert() {
+            securityViolations++;
+
+            if (securityViolations >= maxViolations) {
+                document.body.innerHTML = `
+                    <div style="
+                        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                        background: #e74c3c; color: white; display: flex;
+                        flex-direction: column; justify-content: center;
+                        align-items: center; font-family: Arial, sans-serif;
+                        z-index: 9999;
+                    ">
+                        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🚫 ACCÈS BLOQUÉ</h1>
+                        <p style="font-size: 1.2rem; text-align: center; max-width: 600px;">
+                            Tentatives de contournement de sécurité détectées.<br>
+                            Cette session a été fermée pour des raisons de sécurité.
+                        </p>
+                        <button onclick="window.close()" style="
+                            margin-top: 2rem; padding: 1rem 2rem; font-size: 1rem;
+                            background: white; color: #e74c3c; border: none;
+                            border-radius: 8px; cursor: pointer;
+                        ">Fermer la fenêtre</button>
+                    </div>
+                `;
+                clearInterval(devtoolsCheck);
+            } else {
+                const alertDiv = document.createElement('div');
+                alertDiv.style.cssText = `
+                    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                    background: #e74c3c; color: white; padding: 1rem 2rem;
+                    border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    z-index: 10000; font-weight: 600;
+                `;
+                alertDiv.textContent = `⚠️ Tentative de sécurité détectée (${securityViolations}/${maxViolations})`;
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.parentNode.removeChild(alertDiv);
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialisation du visualiseur PDF
+        let pdfDocument = null;
+        let currentPage = 1;
+
+        async function loadPDF() {
+            try {
+                hideLoading();
+
+                const loadingTask = pdfjsLib.getDocument({
+                    ...pdfjsConfig,
+                    url: pdfUrl
+                });
+
+                pdfDocument = await loadingTask.promise;
+                document.getElementById('downloadBtn').href = `/api/documents/${filename}/download`;
+                document.getElementById('downloadBtn').style.display = 'inline-flex';
+                document.getElementById('fallbackDownload').href = `/api/documents/${filename}/download`;
+
+                // Afficher le PDF dans l'iframe pour plus de sécurité
+                const viewerUrl = `${PDFJS_URL}pdf_viewer.html?file=${encodeURIComponent(pdfUrl)}`;
+                document.getElementById('pdfViewer').src = viewerUrl;
+
+                // Masquer l'overlay de chargement après un délai
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    document.getElementById('pdfViewer').style.display = 'block';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Erreur lors du chargement du PDF:', error);
+                showError();
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showError() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('errorOverlay').style.display = 'flex';
+        }
+
+        // Démarrer le chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger PDF.js depuis CDN
+            const script = document.createElement('script');
+            script.src = `${PDFJS_URL}pdf.min.js`;
+            script.onload = loadPDF;
+            script.onerror = showError;
+            document.head.appendChild(script);
+        });
+
+        // Logging de sécurité
+        window.addEventListener('beforeunload', function() {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/api/log/viewer-access', JSON.stringify({
+                    filename: filename,
+                    action: 'close_viewer',
+                    violations: securityViolations,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent.substring(0, 100)
+                }));
+            }
+        });
+
+        // Monitoring en temps réel
+        setInterval(() => {
+            if (securityViolations === 0) {
+                document.getElementById('statusIndicator').innerHTML = '✅ Sécurisé';
+                document.getElementById('statusIndicator').style.background = 'rgba(46, 204, 113, 0.9)';
+            } else if (securityViolations < maxViolations) {
+                document.getElementById('statusIndicator').innerHTML = `⚠️ ${securityViolations} alerte(s)`;
+                document.getElementById('statusIndicator').style.background = 'rgba(241, 196, 15, 0.9)';
+            }
+        }, 1000);
+
+        console.log('🔒 Visualiseur PDF sécurisé initialisé');
+        console.log('📊 Monitoring de sécurité activé');
+    </script>
+</body>
+</html>

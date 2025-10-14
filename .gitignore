@@ -1,0 +1,39 @@
+# # Fichiers de configuration sensibles
+# .env
+# *.env
+# config.env
+
+# # Dossiers de dépendances
+# venv/
+# __pycache__/
+# *.py[cod]
+# *$py.class
+
+# # Fichiers de base de données
+# *.db
+# *.sqlite3
+
+# # Dossiers d'upload
+# backend/uploads/*
+# !backend/uploads/.gitkeep
+
+# # Fichiers de logs
+# *.log
+
+# # Environnements virtuels
+# ENV/
+
+# # Fichiers de l'IDE
+# .idea/
+# .vscode/
+# *.swp
+# *.swo
+
+# # Fichiers de build et de déploiement
+# build/
+# dist/
+# *.egg-info/
+
+# # Fichiers système
+# .DS_Store
+# Thumbs.db
