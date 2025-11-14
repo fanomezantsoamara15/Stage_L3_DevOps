@@ -5,7 +5,7 @@
  */
 
 // Configuration de base pour l'API Flask
-const API_BASE_URL = window.APP_CONFIG.apiBaseUrl || 'http://localhost:5000/api';
+const API_BASE_URL = window.APP_CONFIG.apiBaseUrl || '/api';
 
 // Types pour les réponses API
 export interface ApiResponse<T> {

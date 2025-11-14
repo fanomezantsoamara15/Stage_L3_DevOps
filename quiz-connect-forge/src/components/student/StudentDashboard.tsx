@@ -145,7 +145,7 @@ export function StudentDashboard() {
   // Télécharger un document
   const downloadDocument = async (chemin: string, filename: string) => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+      const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || '';
       const url = `${base}${chemin}`;
       window.open(url, '_blank');
     } catch (error) {
@@ -176,7 +176,7 @@ export function StudentDashboard() {
   const closePreview = () => setPreviewDoc(null);
 
   const getPreviewUrl = (chemin: string) => {
-    const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+    const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || '';
     const url = `${base}${chemin}`;
     // Encoder proprement les espaces et caractères spéciaux sans casser les '/'
     return encodeURI(url);
