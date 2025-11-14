@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: quiz-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: delph152/quiz-connect-backend:latest  # 🔁 remplace avec ton image Docker Hub
+          ports:
+            - containerPort: 5000
+          env:
+            - name: FLASK_APP
+              value: app.py
+            - name: FLASK_ENV
+              value: production
+            - name: MYSQL_HOST
+              value: mysql
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_PASSWORD
+              value: rootpassword
+            - name: MYSQL_DATABASE
+              value: quiz_connect
+            - name: SECRET_KEY
+              value: votre_cle_secrete_ici
+            - name: MAIL_SERVER
+              value: smtp.gmail.com
+            - name: MAIL_PORT
+              value: "587"
+            - name: MAIL_USE_TLS
+              value: "True"
+            - name: MAIL_USERNAME
+              value: elmarleymfd3@gmail.com
+            - name: MAIL_PASSWORD
+              value: cbtm nsya mdoy rdyk
+            - name: MAIL_DEFAULT_SENDER
+              value: elmarleymfd3@gmail.com
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+      volumes:
+        - name: uploads
+          emptyDir: {}

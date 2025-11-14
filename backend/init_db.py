@@ -7,11 +7,11 @@ def init_db():
         db.create_all()
 
         # Vérifier si l'admin existe déjà
-        if not User.query.filter_by(username='admin').first():
+        if not User.query.filter_by(username='adminresponsable').first():
             # Créer un utilisateur admin par défaut
             admin = User(
-                username='admin',
-                email='admin@example.com',
+                username='adminresponsable',
+                email='admin@responsable.com',
                 password=generate_password_hash('admin123', method='pbkdf2:sha256'),
                 role='admin',
                 actif=True

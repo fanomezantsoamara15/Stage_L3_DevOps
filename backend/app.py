@@ -21,7 +21,17 @@ app = Flask(__name__)
 # Configuration CORS
 app.config.update(
     CORS_SUPPORTS_CREDENTIALS=True,
-    CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080", "http://127.0.0.1:8080"],
+    CORS_ORIGINS=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        # Ajouts pour quiz.local
+        "http://quiz.local",
+        "https://quiz.local",
+        "http://quiz.local:30080",
+        "https://quiz.local:30080"
+    ],
     CORS_HEADERS=['Content-Type', 'Authorization'],
     CORS_METHODS=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     CORS_EXPOSE_HEADERS=['Content-Type', 'Authorization', 'X-Total-Count']
