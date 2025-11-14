@@ -15,6 +15,14 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: delph152/quiz-connect-frontend:latest  # 🔁 remplace avec ton image Docker Hub
+          image: delph152/quiz-connect-frontend:latest
           ports:
             - containerPort: 80
+          volumeMounts:                  # <-- ici, à l'intérieur du container
+            - name: config-volume
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json
+      volumes:                          # <-- ici, à l'intérieur du pod spec
+        - name: config-volume
+          configMap:
+            name: frontend-config

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: quiz-connect
+data:
+  config.json: |
+    {
+      "apiBaseUrl": "http://backend:5000/api"
+    }
