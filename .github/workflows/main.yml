@@ -46,7 +46,7 @@ jobs:
           echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
         # Tu devras copier le contenu de ton fichier .yml fourni par OVH dans ce secret GitHub
 
-      - name: Deploy to Kubernetes (OVHcloud)
+      - name: Deploy to Kubernetes (OVHcloud managed kubernetes)
         run: |
           # Applique les changements (ConfigMaps, Secrets, PVC)
           kubectl apply -f k8s/namespace.yaml
