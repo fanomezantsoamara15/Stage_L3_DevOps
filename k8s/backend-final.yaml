@@ -1,0 +1,131 @@
+# # apiVersion: apps/v1
+# # kind: Deployment
+# # metadata:
+# #   name: backend
+# #   namespace: quiz-connect
+# # spec:
+# #   replicas: 1  # ✅ Bon à cause du PVC RWO
+# #   selector:
+# #     matchLabels:
+# #       app: backend
+# #   template:
+# #     metadata:
+# #       labels:
+# #         app: backend
+# #     spec:
+# #       # ⭐⭐ CORRECTION : Cette tolérance doit être DANS spec.template.spec (déjà bon!)
+# #       tolerations:
+# #         - key: "node.cloudprovider.kubernetes.io/uninitialized"
+# #           operator: "Equal"
+# #           value: "true"
+# #           effect: "NoSchedule"
+      
+# #       containers:
+# #         - name: backend
+# #           image: delph152/quiz-connect-backend:latest
+# #           imagePullPolicy: Always
+# #           ports:
+# #             - containerPort: 5000
+          
+# #           # ⭐⭐ CORRECTION : Ajouter la commande pour démarrer Flask
+# #           command: ["python"]
+# #           args: ["main.py"]  # ou "app.py" selon votre fichier
+          
+# #           # ⭐⭐ CORRECTION : Probes plus clémentes
+# #           livenessProbe:
+# #             httpGet:
+# #               path: /health
+# #               port: 5000
+# #             initialDelaySeconds: 120  # Donne 2 min pour démarrer
+# #             periodSeconds: 30
+# #             failureThreshold: 3  # 3 échecs = 1.5 min, pas 6
+# #             timeoutSeconds: 5
+          
+# #           readinessProbe:
+# #             httpGet:
+# #               path: /health
+# #               port: 5000
+# #             initialDelaySeconds: 60  # Donne 1 min
+# #             periodSeconds: 15
+# #             failureThreshold: 3
+# #             timeoutSeconds: 3
+          
+# #           resources:
+# #             requests:
+# #               memory: "256Mi"
+# #               cpu: "200m"
+# #             limits:
+# #               memory: "512Mi"
+# #               cpu: "500m"
+          
+# #           envFrom:
+# #             - configMapRef:
+# #                 name: backend-config
+# #             - secretRef:
+# #                 name: backend-secret
+          
+# #           env:
+# #             - name: MYSQL_PASSWORD
+# #               valueFrom:
+# #                 secretKeyRef:
+# #                   name: mysql-secret
+# #                   key: root-password
+          
+# #           # ⭐⭐ CHOIX CRITIQUE : Volume ou pas ?
+# #           # OPTION A : Garder (mais vérifier que le PVC n'est pas déjà utilisé)
+# #           volumeMounts:
+# #             - name: uploads-storage
+# #               mountPath: /app/uploads
+      
+# #       # OPTION A : Garder le volume
+# #       volumes:
+# #         - name: uploads-storage
+# #           persistentVolumeClaim:
+# #             claimName: uploads-pvc  # ⚠️ Vérifier qu'il n'est pas déjà attaché!
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: backend
+#   namespace: quiz-connect
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: backend
+#   template:
+#     metadata:
+#       labels:
+#         app: backend
+#     spec:
+#       tolerations:
+#         - key: "node.cloudprovider.kubernetes.io/uninitialized"
+#           operator: "Equal"
+#           value: "true"
+#           effect: "NoSchedule"
+      
+#       containers:
+#         - name: backend
+#           image: delph152/quiz-connect-backend:latest
+#           command: ["python"]
+#           args: ["-c", "
+# from app import app
+# from db import db
+# import os
+# print('Starting Flask...')
+# with app.app_context():
+#     db.create_all()
+# app.run(host='0.0.0.0', port=5000, debug=False)
+#           "]
+#           env:
+#             - name: MYSQL_HOST
+#               value: "mysql"
+#             - name: MYSQL_USER
+#               value: "root"
+#             - name: MYSQL_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: mysql-secret
+#                   key: root-password
+#             - name: MYSQL_DATABASE
+#               value: "quiz_connect"

@@ -10,14 +10,33 @@
 #       targetPort: 3306
 #   selector:
 #     app: mysql
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mysql
+#   namespace: quiz-connect
+# spec:
+#   selector:
+#     app: mysql
+#   ports:
+#     - port: 3306
+#       targetPort: 3306
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
   namespace: quiz-connect
+  labels:
+    app: mysql
+    tier: database
 spec:
+  type: ClusterIP   # service interne uniquement (bon pour la prod)
+
   selector:
     app: mysql
+
   ports:
-    - port: 3306
+    - name: mysql
+      port: 3306
       targetPort: 3306
+      protocol: TCP
