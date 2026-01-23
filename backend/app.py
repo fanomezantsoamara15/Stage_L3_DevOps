@@ -17,7 +17,10 @@ from email.mime.multipart import MIMEMultipart
 load_dotenv('config.env')
 
 app = Flask(__name__)
-
+# Configuration kubernetes health check
+@app.route("/health")
+def health():
+    return "ok", 200
 # Configuration CORS
 app.config.update(
     CORS_SUPPORTS_CREDENTIALS=True,

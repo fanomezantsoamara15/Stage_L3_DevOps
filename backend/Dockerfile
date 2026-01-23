@@ -27,9 +27,9 @@ RUN mkdir -p uploads
 EXPOSE 5000
 
 # Définir les variables d'environnement pour la production
-ENV FLASK_APP=app.py
+ENV FLASK_APP=main.py
 ENV FLASK_ENV=production
 ENV FLASK_DEBUG=False
 
 # Commande pour démarrer l'application
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]
