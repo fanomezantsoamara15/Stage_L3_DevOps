@@ -80,7 +80,11 @@ spec:
         tier: backend
     spec:
       terminationGracePeriodSeconds: 20
-
+      tolerations:
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - name: backend
           image: delph152/quiz-connect-backend:latest
@@ -119,7 +123,7 @@ spec:
 
           env:
             - name: FLASK_APP
-              value: app.py
+              value: main.py
             - name: FLASK_ENV
               value: production
             - name: MYSQL_HOST

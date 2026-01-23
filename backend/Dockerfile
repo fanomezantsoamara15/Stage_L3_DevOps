@@ -12,13 +12,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier le fichier requirements.txt depuis le répertoire backend
-COPY backend/requirements.txt .
+COPY requirements.txt .
 
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le code source de l'application depuis le répertoire backend
-COPY backend/ .
+COPY . .
 
 # Créer le répertoire uploads s'il n'existe pas
 RUN mkdir -p uploads

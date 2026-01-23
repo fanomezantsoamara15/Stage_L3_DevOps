@@ -80,7 +80,11 @@ spec:
 
     spec:
       terminationGracePeriodSeconds: 30
-
+      tolerations:
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - name: mysql
           image: mysql:8.0
