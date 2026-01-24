@@ -129,3 +129,49 @@
 #                   key: root-password
 #             - name: MYSQL_DATABASE
 #               value: "quiz_connect"
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-debug
+  namespace: quiz-connect
+spec:
+  tolerations:
+    - key: "node.cloudprovider.kubernetes.io/uninitialized"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+  containers:
+  - name: debug
+    image: delph152/quiz-connect-backend:latest
+    command: ["sh"]
+    args: 
+      - "-c"
+      - |
+        echo "=== DEBUG START ==="
+        echo "Environment:"
+        env | grep -E "MYSQL|FLASK"
+        echo ""
+        echo "Trying to start Flask..."
+        # Capture TOUTES les erreurs
+        python main.py 2>&1 || {
+          echo "=== FLASK CRASHED ==="
+          sleep 3600  # Reste en vie pour investigation
+        }
+    env:
+      - name: FLASK_APP
+        value: "main.py"
+      - name: FLASK_ENV
+        value: "production"
+      - name: MYSQL_HOST
+        value: "mysql"
+      - name: MYSQL_USER
+        value: "root"
+      - name: MYSQL_PASSWORD
+        value: "rootpassword"
+      - name: MYSQL_DATABASE
+        value: "quiz_connect"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"

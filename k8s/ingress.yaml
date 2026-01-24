@@ -35,40 +35,33 @@ kind: Ingress
 metadata:
   name: quiz-connect-ingress
   namespace: quiz-connect
-  labels:
-    app: quiz-connect
   annotations:
+    # Cette annotation permet de gérer correctement le routage /api
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    # Augmente la limite de taille pour l'upload d'images sur ton backend
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
 spec:
   ingressClassName: nginx
   rules:
-    - host: quiz.local
-      http:
+    # Si tu n'as pas de domaine, tu peux supprimer la ligne 'host' 
+    # ou mettre l'IP publique d'OVH pour que l'Ingress réponde à tout.
+    - http:
         paths:
+          # 1. Le Backend (Prioritaire)
           - path: /api/?(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: backend
                 port:
                   number: 5000
-
-          - path: /?(.*)
-            pathType: Prefix
+          
+          # phpMyAdmin route removed for production safety (do not expose DB admin UI)
+          # 3. Le Frontend (Tout le reste)
+          - path: /(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: frontend
-                port:
-                  number: 80
-
-          # ⚠️ À supprimer en production réelle
-          - path: /phpmyadmin/?(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: phpmyadmin
                 port:
                   number: 80

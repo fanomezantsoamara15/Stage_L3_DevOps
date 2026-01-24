@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from db import db
 from flask_cors import CORS
 from flask_mail import Message
 from dotenv import load_dotenv
@@ -17,10 +18,12 @@ from email.mime.multipart import MIMEMultipart
 load_dotenv('config.env')
 
 app = Flask(__name__)
-# Configuration kubernetes health check
-@app.route("/health")
+
+
+@app.route('/health', methods=['GET'])
 def health():
-    return "ok", 200
+    return jsonify({'status': 'ok'}), 200
+
 # Configuration CORS
 app.config.update(
     CORS_SUPPORTS_CREDENTIALS=True,
@@ -33,7 +36,12 @@ app.config.update(
         "http://quiz.local",
         "https://quiz.local",
         "http://quiz.local:30080",
-        "https://quiz.local:30080"
+        "https://quiz.local:30080",
+        # ⭐⭐ AJOUTEZ L'IP EXTERNE ⭐⭐
+        "http://162.19.114.235",
+        "https://162.19.114.235",
+        "http://162.19.114.235:80",
+        "https://162.19.114.235:443"
     ],
     CORS_HEADERS=['Content-Type', 'Authorization'],
     CORS_METHODS=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -124,7 +132,7 @@ except:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
@@ -2208,10 +2216,10 @@ def change_quiz_status(current_user, quiz_id):
     })
 
 # Point d'entrée principal pour démarrer le serveur
-if __name__ == '__main__':
-    with app.app_context():
-        # Créer les tables si elles n'existent pas (pour le développement)
-        db.create_all()
+# if __name__ == '__main__':
+#     with app.app_context():
+#         # Créer les tables si elles n'existent pas (pour le développement)
+#         db.create_all()
 
-    # Démarrer le serveur Flask
-    app.run(host='0.0.0.0', port=5000, debug=False)
+#     # Démarrer le serveur Flask
+#     app.run(host='0.0.0.0', port=5000, debug=False)

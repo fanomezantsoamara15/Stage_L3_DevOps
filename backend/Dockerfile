@@ -17,7 +17,8 @@ COPY requirements.txt .
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le code source de l'application depuis le répertoire backend
+# Copier le code source de l'application (assume build context = backend/)
+# Si vous build depuis la racine du repo, utilisez: docker build -f backend/Dockerfile .
 COPY . .
 
 # Créer le répertoire uploads s'il n'existe pas

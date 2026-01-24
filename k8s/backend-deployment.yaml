@@ -1,56 +1,3 @@
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: backend
-#   namespace: quiz-connect
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: backend
-#   template:
-#     metadata:
-#       labels:
-#         app: backend
-#     spec:
-#       containers:
-#         - name: backend
-#           image: delph152/quiz-connect-backend:latest  # 🔁 remplace avec ton image Docker Hub
-#           ports:
-#             - containerPort: 5000
-#           env:
-#             - name: FLASK_APP
-#               value: app.py
-#             - name: FLASK_ENV
-#               value: production
-#             - name: MYSQL_HOST
-#               value: mysql
-#             - name: MYSQL_USER
-#               value: root
-#             - name: MYSQL_PASSWORD
-#               value: rootpassword
-#             - name: MYSQL_DATABASE
-#               value: quiz_connect
-#             - name: SECRET_KEY
-#               value: votre_cle_secrete_ici
-#             - name: MAIL_SERVER
-#               value: smtp.gmail.com
-#             - name: MAIL_PORT
-#               value: "587"
-#             - name: MAIL_USE_TLS
-#               value: "True"
-#             - name: MAIL_USERNAME
-#               value: elmarleymfd3@gmail.com
-#             - name: MAIL_PASSWORD
-#               value: cbtm nsya mdoy rdyk
-#             - name: MAIL_DEFAULT_SENDER
-#               value: elmarleymfd3@gmail.com
-#           volumeMounts:
-#             - name: uploads
-#               mountPath: /app/uploads
-#       volumes:
-#         - name: uploads
-#           emptyDir: {}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -59,8 +6,9 @@ metadata:
   labels:
     app: backend
     tier: backend
+
 spec:
-  replicas: 1   # on reste simple pour le test
+  replicas: 1
   revisionHistoryLimit: 3
 
   strategy:
@@ -78,80 +26,93 @@ spec:
       labels:
         app: backend
         tier: backend
+
     spec:
       terminationGracePeriodSeconds: 20
+
       tolerations:
         - key: "node.cloudprovider.kubernetes.io/uninitialized"
           operator: "Equal"
           value: "true"
           effect: "NoSchedule"
+
       containers:
-        - name: backend
-          image: delph152/quiz-connect-backend:latest
-          imagePullPolicy: Always
+      - name: backend
+        image: delph152/quiz-connect-backend:latest
+        imagePullPolicy: Always
 
-          ports:
-            - containerPort: 5000
+        ports:
+          - containerPort: 5000
 
-          # ✅ Ressources (OBLIGATOIRE en vrai cluster)
-          resources:
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
+        # ===== Ressources obligatoires =====
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
 
-          # ✅ Health checks Kubernetes
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 30
-            periodSeconds: 15
-            timeoutSeconds: 2
-            failureThreshold: 5
+        # ===== Probes CORRECTES =====
 
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 3
+        # Autorise démarrage lent (DB + migrations)
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          failureThreshold: 30     # 30 × 5s = 150 secondes max
+          periodSeconds: 5
 
-          env:
-            - name: FLASK_APP
-              value: main.py
-            - name: FLASK_ENV
-              value: production
-            - name: MYSQL_HOST
-              value: mysql
-            - name: MYSQL_USER
-              value: root
-            - name: MYSQL_PASSWORD
-              value: rootpassword
-            - name: MYSQL_DATABASE
-              value: quiz_connect
-            - name: SECRET_KEY
-              value: votre_cle_secrete_ici
-            - name: MAIL_SERVER
-              value: smtp.gmail.com
-            - name: MAIL_PORT
-              value: "587"
-            - name: MAIL_USE_TLS
-              value: "True"
-            - name: MAIL_USERNAME
-              value: elmarleymfd3@gmail.com
-            - name: MAIL_PASSWORD
-              value: cbtm nsya mdoy rdyk
-            - name: MAIL_DEFAULT_SENDER
-              value: elmarleymfd3@gmail.com
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
 
-          volumeMounts:
-            - name: uploads
-              mountPath: /app/uploads
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          timeoutSeconds: 2
+          failureThreshold: 5
+
+        # ===== Variables =====
+        env:
+          - name: FLASK_APP
+            value: main.py
+          - name: FLASK_ENV
+            value: production
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: rootpassword
+          - name: MYSQL_DATABASE
+            value: quiz_connect
+          - name: SECRET_KEY
+            value: votre_cle_secrete_ici
+          - name: MAIL_SERVER
+            value: smtp.gmail.com
+          - name: MAIL_PORT
+            value: "587"
+          - name: MAIL_USE_TLS
+            value: "True"
+          - name: MAIL_USERNAME
+            value: elmarleymfd3@gmail.com
+          - name: MAIL_PASSWORD
+            value: cbtm nsya mdoy rdyk
+          - name: MAIL_DEFAULT_SENDER
+            value: elmarleymfd3@gmail.com
+
+        volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
 
       volumes:
         - name: uploads

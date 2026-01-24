@@ -1,3 +1,16 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: frontend
+#   namespace: quiz-connect
+# spec:
+#   type: NodePort
+#   ports:
+#     - port: 80
+#       targetPort: 80
+#       nodePort: 30080
+#   selector:
+#     app: frontend
 apiVersion: v1
 kind: Service
 metadata:
@@ -13,4 +26,4 @@ spec:
       targetPort: 80  # Port interne de ton conteneur Nginx
       protocol: TCP
   selector:
-    app: frontend
+    app: frontend     # Doit correspondre exactement au label du deployment
