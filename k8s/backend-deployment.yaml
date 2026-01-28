@@ -91,8 +91,11 @@ spec:
             value: mysql
           - name: MYSQL_USER
             value: root
-          - name: MYSQL_PASSWORD
-            value: rootpassword
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: root-password
           - name: MYSQL_DATABASE
             value: quiz_connect
           - name: SECRET_KEY

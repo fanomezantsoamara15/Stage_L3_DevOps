@@ -1,0 +1,24 @@
+loki:
+  tolerations:
+    - key: "node.cloudprovider.kubernetes.io/uninitialized"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+    - operator: "Exists"
+
+promtail:
+  tolerations:
+    - key: "node.cloudprovider.kubernetes.io/uninitialized"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+    - operator: "Exists"
+
+grafana:
+  enabled: false
+  tolerations:
+    - key: "node.cloudprovider.kubernetes.io/uninitialized"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+    - operator: "Exists"

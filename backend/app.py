@@ -38,10 +38,6 @@ app.config.update(
         "http://quiz.local:30080",
         "https://quiz.local:30080",
         # ⭐⭐ AJOUTEZ L'IP EXTERNE ⭐⭐
-        "http://162.19.114.235",
-        "https://162.19.114.235",
-        "http://162.19.114.235:80",
-        "https://162.19.114.235:443"
     ],
     CORS_HEADERS=['Content-Type', 'Authorization'],
     CORS_METHODS=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
