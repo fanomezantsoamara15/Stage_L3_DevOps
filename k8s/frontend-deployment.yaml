@@ -61,7 +61,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: frontend
-          image: nginx:stable-alpine
+          image: delph152/quiz-connect-frontend:latest
           ports:
             - containerPort: 80
           livenessProbe:
@@ -87,9 +87,9 @@ spec:
             - name: config-volume
               mountPath: /usr/share/nginx/html/config.json
               subPath: config.json
-            - name: config-volume
-              mountPath: /usr/share/nginx/html/index.html
-              subPath: index.html
+            # - name: config-volume
+            #   mountPath: /usr/share/nginx/html/index.html
+            #   subPath: index.html
       volumes:
         - name: config-volume
           configMap:
