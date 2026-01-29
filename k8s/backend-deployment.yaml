@@ -91,7 +91,7 @@ spec:
             value: mysql
           - name: MYSQL_USER
             value: root
-          - name: MYSQL_ROOT_PASSWORD
+          - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: mysql-secret

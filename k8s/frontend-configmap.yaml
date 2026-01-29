@@ -8,12 +8,4 @@ data:
     {
       "apiBaseUrl": "/api"
     }
-  index.html: |
-    <!doctype html>
-    <html>
-      <head><meta charset="utf-8"><title>Quiz Connect (placeholder)</title></head>
-      <body>
-        <h1>Quiz Connect - Frontend placeholder</h1>
-        <p>This is a temporary placeholder to validate ingress and service.</p>
-      </body>
-    </html>
+  
