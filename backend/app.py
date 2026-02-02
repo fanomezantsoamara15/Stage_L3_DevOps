@@ -13,6 +13,7 @@ import smtplib
 import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from flask_mail import Mail
 
 # Charger les variables d'environnement
 load_dotenv('config.env')
@@ -108,15 +109,15 @@ def log_request_info():
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 
 # Configuration Flask-Mail
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.sendgrid.net')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME','apikey')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
 # Initialisation de Flask-Mail
-from flask_mail import Mail
+
 mail = Mail(app)
 
 # Utiliser SQLite par défaut pour les tests si MySQL n'est pas disponible
@@ -646,6 +647,212 @@ def add_student(current_user):
     }), 201
 
 @app.route('/api/students', methods=['GET'])
+
+# Route pour l'inscription publique (sans authentification)
+@app.route('/api/students/public', methods=['POST'])
+def add_student_public():
+    print("=== Début de l'inscription publique d'un étudiant ===")
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Données manquantes'
+            }), 400
+        
+        print(f"Données reçues pour inscription publique: {data}")
+        
+        # Vérification des champs obligatoires
+        required_fields = ['nom', 'prenom', 'email', 'telephone', 'code_auth']
+        missing_fields = [field for field in required_fields if field not in data or not data[field]]
+        
+        if missing_fields:
+            error_msg = f'Champs manquants: {", ".join(missing_fields)}'
+            print(f"Erreur: {error_msg}")
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), 400
+        
+        # Vérification de l'email
+        if not isinstance(data['email'], str) or '@' not in data['email']:
+            error_msg = 'Format d\'email invalide'
+            print(f"Erreur: {error_msg}")
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), 400
+            
+        # Vérifier si l'email existe déjà
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            print(f"Erreur: L'email {data['email']} est déjà utilisé")
+            return jsonify({
+                'success': False,
+                'error': 'Cet email est déjà utilisé'
+            }), 400
+
+        # Utiliser le code d'authentification fourni
+        auth_code = data['code_auth']
+        hashed_password = generate_password_hash(auth_code, method='sha256')
+        
+        # Déterminer si l'étudiant est actif
+        # Par défaut inactif, sauf si spécifié autrement
+        is_active = data.get('actif', False)
+        
+        # Générer un nom d'utilisateur unique
+        base_username = f"{data['prenom'].lower()}.{data['nom'].lower()}"
+        username = base_username
+        counter = 1
+        
+        # Vérifier si le username existe déjà
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        # Créer le nouvel étudiant
+        new_student = User(
+            username=username,
+            email=data['email'],
+            password=hashed_password,
+            role='student',
+            telephone=data.get('telephone', ''),
+            code_auth=auth_code,
+            actif=is_active,
+            notes=data.get('notes', 'Inscription publique')
+        )
+        
+        db.session.add(new_student)
+        db.session.commit()
+        
+        print(f"Étudiant créé avec succès: {new_student.id} - {new_student.email}")
+        
+        # Envoyer l'email avec le code d'authentification
+        email_sent = False
+        try:
+            email_sent = send_auth_email(
+                recipient_email=new_student.email,
+                student_name=f"{data['prenom']} {data['nom']}",
+                auth_code=auth_code
+            )
+            print(f"Email envoyé: {email_sent}")
+        except Exception as email_error:
+            print(f"Erreur lors de l'envoi de l'email: {email_error}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Inscription réussie',
+            'email_sent': email_sent,
+            'data': {
+                'student': {
+                    'id': new_student.id,
+                    'username': new_student.username,
+                    'email': new_student.email,
+                    'telephone': new_student.telephone,
+                    'actif': new_student.actif,
+                    'code_auth': new_student.code_auth
+                }
+            }
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erreur lors de l'inscription publique: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Une erreur est survenue lors de l\'inscription',
+            'details': str(e)
+        }), 500
+
+# Route pour créer un paiement public (sans authentification)
+@app.route('/api/payments/public', methods=['POST'])
+def create_payment_public():
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Données manquantes'
+            }), 400
+
+        print(f"Données paiement public reçues: {data}")
+
+        # Vérifier si l'ID de l'étudiant est fourni
+        if 'id_etudiant' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'ID étudiant manquant'
+            }), 400
+
+        # Vérifier si l'étudiant existe
+        student = User.query.get(data['id_etudiant'])
+        if not student:
+            return jsonify({
+                'success': False,
+                'error': f'Aucun étudiant trouvé avec l\'ID {data["id_etudiant"]}'
+            }), 404
+
+        # Valider les données du paiement
+        montant = data.get('montant', 0)
+        if not isinstance(montant, (int, float)) or montant <= 0:
+            return jsonify({
+                'success': False,
+                'error': 'Le montant doit être un nombre positif'
+            }), 400
+
+        # Préparer les données du paiement avec des valeurs par défaut
+        payment_data = {
+            'user_id': data['id_etudiant'],
+            'mode_paiement': data.get('mode_paiement', 'espece'),
+            'code_ref_mvola': data.get('code_ref_mvola', ''),
+            'montant': montant,
+            'statut': data.get('statut', 'en_attente'),
+            'tranche_restante': data.get('tranche_restante', 0),
+            'date_paiement': data.get('date_paiement') or datetime.utcnow().strftime('%Y-%m-%d'),
+            'notes': f'Inscription publique - {data.get("mode_paiement", "espece")}'
+        }
+
+        print(f"Création du paiement: {payment_data}")
+
+        # Créer le paiement
+        new_payment = Payment(**payment_data)
+        db.session.add(new_payment)
+        
+        # Si le paiement est MVola et complet, activer l'étudiant
+        if data.get('mode_paiement') == 'mvola' and data.get('statut') == 'complet':
+            student.actif = True
+            print(f"Activation de l'étudiant {student.id} pour paiement MVola complet")
+        
+        db.session.commit()
+
+        print(f"Paiement créé avec succès: {new_payment.id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Paiement enregistré avec succès',
+            'payment_id': new_payment.id,
+            'data': {
+                'payment': {
+                    'id': new_payment.id,
+                    'user_id': new_payment.user_id,
+                    'montant': new_payment.montant,
+                    'statut': new_payment.statut,
+                    'mode_paiement': new_payment.mode_paiement
+                }
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erreur lors de la création du paiement public: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Une erreur est survenue lors de la création du paiement',
+            'details': str(e)
+        }), 500
+
 @app.route('/api/admin/students', methods=['GET', 'OPTIONS'])
 def get_students():
     if request.method == 'OPTIONS':
@@ -677,6 +884,8 @@ def get_students():
         'success': True,
         'data': students_data
     })
+
+    
 
 @app.route('/api/admin/students/bulk-delete', methods=['DELETE'])
 @token_required

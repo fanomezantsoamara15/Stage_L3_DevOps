@@ -197,11 +197,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                   </Button>
                 </div>
                 
-                <div className="text-sm text-center text-muted-foreground">
+                {/* <div className="text-sm text-center text-muted-foreground">
                   <p>Données de test:</p>
                   <p>Email: jean.rakoto@email.com</p>
                   <p>Code: JR2024001</p>
-                </div>
+                </div> */}
               </div>
             </TabsContent>
             

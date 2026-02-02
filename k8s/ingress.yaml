@@ -1,35 +1,5 @@
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: quiz-connect-ingress
-#   namespace: quiz-connect
-# spec:
-#   ingressClassName: nginx
-#   rules:
-#     - host: quiz.local
-#       http:
-#         paths:
-#           - path: /api
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: backend
-#                 port:
-#                   number: 5000
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: frontend
-#                 port:
-#                   number: 80
-#           - path: /phpmyadmin
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: phpmyadmin
-#                 port:
-#                   number: 80
+# pour le test de l'ingress avec uploads
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -49,6 +19,15 @@ spec:
                 name: backend
                 port:
                   number: 5000
+          
+          # AJOUTEZ CETTE SECTION ICI
+          - path: /uploads
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 5000
 
           - path: /
             pathType: Prefix
@@ -57,3 +36,30 @@ spec:
                 name: frontend
                 port:
                   number: 80
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: quiz-connect-ingress
+#   namespace: quiz-connect
+#   annotations:
+#     nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - http:
+#         paths:
+#           - path: /api
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: backend
+#                 port:
+#                   number: 5000
+
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: frontend
+#                 port:
+#                   number: 80

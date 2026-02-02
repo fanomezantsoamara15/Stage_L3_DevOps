@@ -44,7 +44,7 @@ spec:
         ports:
           - containerPort: 5000
 
-        # ===== Ressources obligatoires =====
+        # ===== Ressources =====
         resources:
           requests:
             cpu: "200m"
@@ -53,14 +53,13 @@ spec:
             cpu: "500m"
             memory: "512Mi"
 
-        # ===== Probes CORRECTES =====
+        # ===== Probes =====
 
-        # Autorise démarrage lent (DB + migrations)
         startupProbe:
           httpGet:
             path: /health
             port: 5000
-          failureThreshold: 30     # 30 × 5s = 150 secondes max
+          failureThreshold: 30
           periodSeconds: 5
 
         readinessProbe:
@@ -87,6 +86,7 @@ spec:
             value: main.py
           - name: FLASK_ENV
             value: production
+
           - name: MYSQL_HOST
             value: mysql
           - name: MYSQL_USER
@@ -98,25 +98,36 @@ spec:
                 key: root-password
           - name: MYSQL_DATABASE
             value: quiz_connect
+
           - name: SECRET_KEY
             value: votre_cle_secrete_ici
           - name: MAIL_SERVER
-            value: smtp.gmail.com
+            value: smtp.sendgrid.net
+
           - name: MAIL_PORT
             value: "587"
-          - name: MAIL_USE_TLS
-            value: "True"
-          - name: MAIL_USERNAME
-            value: elmarleymfd3@gmail.com
-          - name: MAIL_PASSWORD
-            value: cbtm nsya mdoy rdyk
-          - name: MAIL_DEFAULT_SENDER
-            value: elmarleymfd3@gmail.com
 
+          - name: MAIL_USERNAME
+            value: apikey
+
+          - name: MAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: sendgrid-secret
+                key: MAIL_PASSWORD
+
+          - name: MAIL_DEFAULT_SENDER
+            value: fanomezantsoamara@gmail.com
+
+          
+          
+        # ===== Uploads persistants =====
         volumeMounts:
           - name: uploads
             mountPath: /app/uploads
 
+      # ===== Volume PVC =====
       volumes:
         - name: uploads
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: uploads-pvc
