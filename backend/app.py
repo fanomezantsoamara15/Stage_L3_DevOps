@@ -144,6 +144,30 @@ def allowed_file(filename):
 def serve_upload(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+@app.route("/api/test-email", methods=["GET"])
+def test_email():
+
+    try:
+        msg = Message(
+            subject="Test Email Quiz Connect",
+            recipients=[os.getenv("MAIL_DEFAULT_SENDER")],
+            body="Email de test depuis l'API backend Kubernetes"
+        )
+
+        mail.send(msg)
+
+        return jsonify({
+            "status": "success",
+            "message": "Email envoyé avec succès"
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
 # Assouplir CORS et autoriser l'intégration en iframe (dev)
 @app.after_request
 def add_security_headers(response):
@@ -626,19 +650,19 @@ def add_student(current_user):
     db.session.commit()
     
     # Envoyer l'email avec le code d'authentification
-    email_sent = send_auth_email(
-        recipient_email=new_student.email,
-        student_name=f"{data['prenom']} {data['nom']}",
-        auth_code=auth_code
-    )
+    # email_sent = send_auth_email(
+    #     recipient_email=new_student.email,
+    #     student_name=f"{data['prenom']} {data['nom']}",
+    #     auth_code=auth_code
+    # )
     
-    if not email_sent:
-        app.logger.error(f"Échec de l'envoi de l'email à {new_student.email}")
+    # if not email_sent:
+    #     app.logger.error(f"Échec de l'envoi de l'email à {new_student.email}")
 
     return jsonify({
         'message': 'Student added successfully',
         'auth_code': auth_code,  # À des fins de test, à retirer en production
-        'email_sent': email_sent,
+        # 'email_sent': email_sent,
         'student': {
             'id': new_student.id,
             'username': new_student.username,

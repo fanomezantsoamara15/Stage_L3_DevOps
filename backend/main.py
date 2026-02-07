@@ -17,6 +17,8 @@ from startup import wait_for_mysql
 from init_db import init_db  # <--- Importez votre fonction d'initialisation
 
 if __name__ == "__main__":
+
+    
     # 1. On attend que la base de données soit accessible
     wait_for_mysql()
     
