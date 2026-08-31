@@ -297,6 +297,25 @@ class User(db.Model):
     code_auth = db.Column(db.String(20), unique=True, nullable=True)  # Stockage du code d'authentification en clair
     actif = db.Column(db.Boolean, default=False)
 
+
+def ensure_default_admin():
+    with app.app_context():
+        db.create_all()
+        admin = User.query.filter_by(username='adminresponsable').first()
+        if not admin:
+            admin = User(
+                username='adminresponsable',
+                email='admin@responsable.com',
+                password=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                role='admin',
+                actif=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print('Utilisateur admin créé avec succès!')
+        else:
+            print('L\'utilisateur admin existe déjà')
+
 class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titre = db.Column(db.String(100), nullable=False)
@@ -2206,9 +2225,5 @@ def change_quiz_status(current_user, quiz_id):
 
 # Point d'entrée principal pour démarrer le serveur
 if __name__ == '__main__':
-    with app.app_context():
-        # Créer les tables si elles n'existent pas (pour le développement)
-        db.create_all()
-
-    # Démarrer le serveur Flask
+    ensure_default_admin()
     app.run(host='0.0.0.0', port=5000, debug=False)
