@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # Exécute le workflow quand il y a un push sur la branche main
+      - test-CI
 
 jobs:
   build_and_push:
